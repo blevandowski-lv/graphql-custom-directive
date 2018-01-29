@@ -96,15 +96,13 @@ function resolveMiddlewareWrapper(resolve = defaultResolveFn, directives = {}) {
 function wrapFieldsWithMiddleware(fields) {
 
     for (let label in fields) {
-        let field = fields.hasOwnProperty(label) ? fields[label] : null;
+        let field = Object.prototype.hasOwnProperty.call(fields, label);
 
         if (!!field && typeof field == 'object') {
             field.resolve = resolveMiddlewareWrapper(field.resolve, field.directives);
-            if (field.type._fields) {
-                wrapFieldsWithMiddleware(field.type._fields)
-            } else if (field.type.ofType && field.type.ofType._fields) {
-                wrapFieldsWithMiddleware(field.type.ofType._fields);
-            }
+            var child = field.type;
+            while (child.ofType) child = child.ofType;
+            if (child._fields) wrapFieldsWithMiddleware(child._fields);
         }
     }
 }
